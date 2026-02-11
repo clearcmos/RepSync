@@ -1,8 +1,8 @@
 # RepSwitcher
 
-Automatically tracks the right reputation when entering dungeons and raids.
+**RepSwitcher** automatically switches your watched reputation bar when entering dungeons and raids associated with specific factions.
 
-Built for **TBC Classic Anniversary**.
+Built specifically for **TBC Classic Anniversary**.
 
 ---
 
@@ -22,10 +22,16 @@ Type `/rs` to open the options panel.
 ### Slash Commands
 
 - `/rs` - Open options panel
-- `/rs check` - Manually trigger zone check
 - `/rs clear` - Clear saved previous faction
 - `/rs list` - List mapped instances in chat
 - `/rs help` - Show commands
+
+---
+
+## Configuration Options
+
+- Enable/Disable auto-switching
+- Restore previous rep on exit
 
 ---
 
@@ -75,4 +81,4 @@ MIT License - Open source and free to use.
 
 ## Feedback & Issues
 
-Found a bug or have a suggestion? Open an issue on GitHub.
+Found a bug or have a suggestion? Post a comment / message me on CurseForge, or open an issue on GitHub: https://github.com/clearcmos/RepSwitcher

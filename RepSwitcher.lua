@@ -490,7 +490,6 @@ end
 local function ShowHelp()
     PrintAlways("Commands:");
     PrintAlways("  |cffffd200/rs|r - Toggle options window");
-    PrintAlways("  |cffffd200/rs check|r - Manually trigger zone check");
     PrintAlways("  |cffffd200/rs clear|r - Clear saved previous faction");
     PrintAlways("  |cffffd200/rs list|r - List all mapped instances in chat");
     PrintAlways("  |cffffd200/rs help|r - Show this help");
@@ -541,9 +540,6 @@ local function SlashHandler(msg)
 
     if cmd == "" then
         ToggleOptionsFrame();
-    elseif cmd == "check" then
-        ProcessZoneChange();
-        PrintAlways("Zone check complete.");
     elseif cmd == "clear" then
         db.previousFactionID = nil;
         PrintAlways("Cleared saved previous faction");
