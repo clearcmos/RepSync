@@ -146,7 +146,19 @@ local function GetCurrentWatchedFactionID()
     return nil;
 end
 
---- Get faction name by ID (scans the reputation list)
+local FACTION_NAMES = {
+    [946]  = "Honor Hold",              [947]  = "Thrallmar",
+    [942]  = "Cenarion Expedition",     [933]  = "The Consortium",
+    [1011] = "Lower City",              [935]  = "The Sha'tar",
+    [989]  = "Keepers of Time",         [1077] = "Shattered Sun Offensive",
+    [967]  = "The Violet Eye",          [990]  = "Scale of the Sands",
+    [1012] = "Ashtongue Deathsworn",    [529]  = "Argent Dawn",
+    [59]   = "Thorium Brotherhood",     [809]  = "Shen'dralar",
+    [749]  = "Hydraxian Waterlords",    [609]  = "Cenarion Circle",
+    [910]  = "Brood of Nozdormu",       [270]  = "Zandalar Tribe",
+};
+
+--- Get faction name by ID (tries rep panel first, falls back to static table)
 local function GetFactionNameByID(targetFactionID)
     if not targetFactionID then return nil; end
     local numFactions = GetNumFactions();
@@ -156,7 +168,7 @@ local function GetFactionNameByID(targetFactionID)
             return name;
         end
     end
-    return nil;
+    return FACTION_NAMES[targetFactionID];
 end
 
 --------------------------------------------------------------------------------
