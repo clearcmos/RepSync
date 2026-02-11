@@ -40,56 +40,56 @@ local ADDON_PREFIX = ADDON_COLOR .. "RepSwitcher|r: ";
 
 --------------------------------------------------------------------------------
 -- Instance → Faction Mapping
--- Keys are instance names returned by GetInstanceInfo()
+-- Keys are instanceID (8th return of GetInstanceInfo(), i.e. the map ID)
 -- Values: { faction = ID } for universal, { alliance = ID, horde = ID } for split
 --------------------------------------------------------------------------------
 
 local INSTANCE_FACTION_MAP = {
     -- TBC Dungeons: Hellfire Citadel
-    ["Hellfire Ramparts"]       = { alliance = 946, horde = 947 },  -- Honor Hold / Thrallmar
-    ["The Blood Furnace"]       = { alliance = 946, horde = 947 },
-    ["The Shattered Halls"]     = { alliance = 946, horde = 947 },
+    [543]  = { alliance = 946, horde = 947 },  -- Hellfire Ramparts → Honor Hold / Thrallmar
+    [542]  = { alliance = 946, horde = 947 },  -- The Blood Furnace
+    [540]  = { alliance = 946, horde = 947 },  -- The Shattered Halls
 
     -- TBC Dungeons: Coilfang Reservoir
-    ["The Slave Pens"]          = { faction = 942 },  -- Cenarion Expedition
-    ["The Underbog"]            = { faction = 942 },
-    ["The Steamvault"]          = { faction = 942 },
+    [547]  = { faction = 942 },   -- The Slave Pens → Cenarion Expedition
+    [546]  = { faction = 942 },   -- The Underbog
+    [545]  = { faction = 942 },   -- The Steamvault
 
     -- TBC Dungeons: Auchindoun
-    ["Mana-Tombs"]              = { faction = 933 },  -- The Consortium
-    ["Auchenai Crypts"]         = { faction = 1011 }, -- Lower City
-    ["Sethekk Halls"]           = { faction = 1011 },
-    ["Shadow Labyrinth"]        = { faction = 1011 },
+    [557]  = { faction = 933 },   -- Mana-Tombs → The Consortium
+    [558]  = { faction = 1011 },  -- Auchenai Crypts → Lower City
+    [556]  = { faction = 1011 },  -- Sethekk Halls
+    [555]  = { faction = 1011 },  -- Shadow Labyrinth
 
     -- TBC Dungeons: Tempest Keep
-    ["The Mechanar"]            = { faction = 935 },  -- The Sha'tar
-    ["The Botanica"]            = { faction = 935 },
-    ["The Arcatraz"]            = { faction = 935 },
+    [554]  = { faction = 935 },   -- The Mechanar → The Sha'tar
+    [553]  = { faction = 935 },   -- The Botanica
+    [552]  = { faction = 935 },   -- The Arcatraz
 
     -- TBC Dungeons: Caverns of Time
-    ["Old Hillsbrad Foothills"] = { faction = 989 },  -- Keepers of Time
-    ["The Black Morass"]        = { faction = 989 },
+    [560]  = { faction = 989 },   -- Old Hillsbrad Foothills → Keepers of Time
+    [269]  = { faction = 989 },   -- The Black Morass
 
     -- TBC Dungeons: Sunwell Isle
-    ["Magister's Terrace"]      = { faction = 1077 }, -- Shattered Sun Offensive
+    [585]  = { faction = 1077 },  -- Magister's Terrace → Shattered Sun Offensive
 
     -- TBC Raids
-    ["Karazhan"]                = { faction = 967 },  -- The Violet Eye
-    ["Hyjal Summit"]            = { faction = 990 },  -- Scale of the Sands
-    ["Black Temple"]            = { faction = 1012 }, -- Ashtongue Deathsworn
+    [532]  = { faction = 967 },   -- Karazhan → The Violet Eye
+    [534]  = { faction = 990 },   -- Hyjal Summit → Scale of the Sands
+    [564]  = { faction = 1012 },  -- Black Temple → Ashtongue Deathsworn
 
     -- Vanilla Dungeons
-    ["Stratholme"]              = { faction = 529 },  -- Argent Dawn
-    ["Scholomance"]             = { faction = 529 },
-    ["Blackrock Depths"]        = { faction = 59 },   -- Thorium Brotherhood
-    ["Dire Maul"]               = { faction = 809 },  -- Shen'dralar
+    [329]  = { faction = 529 },   -- Stratholme → Argent Dawn
+    [289]  = { faction = 529 },   -- Scholomance → Argent Dawn
+    [230]  = { faction = 59 },    -- Blackrock Depths → Thorium Brotherhood
+    [429]  = { faction = 809 },   -- Dire Maul → Shen'dralar
 
     -- Vanilla Raids
-    ["Molten Core"]             = { faction = 749 },  -- Hydraxian Waterlords
-    ["Ruins of Ahn'Qiraj"]     = { faction = 609 },  -- Cenarion Circle
-    ["Temple of Ahn'Qiraj"]    = { faction = 910 },  -- Brood of Nozdormu
-    ["Zul'Gurub"]               = { faction = 270 },  -- Zandalar Tribe
-    ["Naxxramas"]               = { faction = 529 },  -- Argent Dawn
+    [409]  = { faction = 749 },   -- Molten Core → Hydraxian Waterlords
+    [509]  = { faction = 609 },   -- Ruins of Ahn'Qiraj → Cenarion Circle
+    [531]  = { faction = 910 },   -- Temple of Ahn'Qiraj → Brood of Nozdormu
+    [309]  = { faction = 270 },   -- Zul'Gurub → Zandalar Tribe
+    [533]  = { faction = 529 },   -- Naxxramas → Argent Dawn
 };
 
 --------------------------------------------------------------------------------
@@ -120,8 +120,8 @@ local function PrintAlways(msg)
 end
 
 --- Get the target faction ID for the current instance based on player faction
-local function GetFactionIDForInstance(instanceName)
-    local entry = INSTANCE_FACTION_MAP[instanceName];
+local function GetFactionIDForInstance(instanceID)
+    local entry = INSTANCE_FACTION_MAP[instanceID];
     if not entry then return nil; end
 
     if entry.faction then
@@ -233,21 +233,21 @@ local function ProcessZoneChange()
     local inInstance, instanceType = IsInInstance();
 
     if inInstance and (instanceType == "party" or instanceType == "raid") then
-        local instanceName = GetInstanceInfo();
-        if not instanceName then return; end
+        local instanceName, _, _, _, _, _, _, instanceID = GetInstanceInfo();
+        if not instanceID then return; end
 
         -- Debounce
         local now = GetTime();
-        if instanceName == lastProcessedInstance and (now - lastProcessedTime) < DEBOUNCE_INTERVAL then
+        if instanceID == lastProcessedInstance and (now - lastProcessedTime) < DEBOUNCE_INTERVAL then
             return;
         end
 
-        local targetFactionID = GetFactionIDForInstance(instanceName);
+        local targetFactionID = GetFactionIDForInstance(instanceID);
         if not targetFactionID then return; end
 
         local currentFactionID = GetCurrentWatchedFactionID();
         if currentFactionID == targetFactionID then
-            lastProcessedInstance = instanceName;
+            lastProcessedInstance = instanceID;
             lastProcessedTime = now;
             return;
         end
@@ -258,10 +258,10 @@ local function ProcessZoneChange()
 
         if FindAndWatchFactionByID(targetFactionID) then
             local factionName = GetFactionNameByID(targetFactionID) or tostring(targetFactionID);
-            Print("Switched to |cffffd200" .. factionName .. "|r for " .. instanceName);
+            Print("Switched to |cffffd200" .. factionName .. "|r for " .. (instanceName or ""));
         end
 
-        lastProcessedInstance = instanceName;
+        lastProcessedInstance = instanceID;
         lastProcessedTime = now;
 
     else
@@ -370,7 +370,7 @@ local function CreateOptionsFrame()
     if OptionsFrame then return OptionsFrame; end
 
     local frame = CreateFrame("Frame", "RepSwitcherOptionsFrame", UIParent, "BackdropTemplate");
-    frame:SetSize(340, 380);
+    frame:SetSize(280, 160);
     frame:SetPoint("CENTER");
     frame:SetBackdrop(FrameBackdrop);
     frame:SetBackdropColor(0, 0, 0, 1);
@@ -417,39 +417,30 @@ local function CreateOptionsFrame()
 
     -- Content area
     local content = CreateFrame("Frame", nil, frame);
-    content:SetPoint("TOPLEFT", 20, -30);
-    content:SetPoint("BOTTOMRIGHT", -20, 50);
+    content:SetPoint("TOPLEFT", 20, -40);
+    content:SetPoint("BOTTOMRIGHT", -20, 15);
 
     local y = 0;
 
-    --------------------------------
-    -- Settings section
-    --------------------------------
-    local settingsHeader = content:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
-    settingsHeader:SetPoint("TOPLEFT", 0, y);
-    settingsHeader:SetText("Settings");
-    settingsHeader:SetTextColor(1, 0.82, 0);
-    y = y - 24;
-
     -- Enabled checkbox
-    local enabledCb = CreateCheckbox(content, "Enable auto-switching", 280);
+    local enabledCb = CreateCheckbox(content, "Enable auto-switching", 240);
     enabledCb:SetPoint("TOPLEFT", 0, y);
     enabledCb:SetValue(db.enabled);
     enabledCb:EnableMouse(true);
     enabledCb:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
         GameTooltip:SetText("Enable Auto-Switching", 1, 1, 1);
-        GameTooltip:AddLine("Automatically switch your watched reputation when entering a mapped dungeon or raid.", 1, 0.82, 0, true);
+        GameTooltip:AddLine("Automatically switch your reputation bar when entering a mapped dungeon or raid.", 1, 0.82, 0, true);
         GameTooltip:Show();
     end);
     enabledCb:SetScript("OnLeave", function() GameTooltip:Hide(); end);
     enabledCb.OnValueChanged = function(self, value)
         db.enabled = value;
     end;
-    y = y - 26;
+    y = y - 32;
 
     -- Restore previous checkbox
-    local restoreCb = CreateCheckbox(content, "Restore previous rep on exit", 280);
+    local restoreCb = CreateCheckbox(content, "Restore previous rep on exit", 240);
     restoreCb:SetPoint("TOPLEFT", 0, y);
     restoreCb:SetValue(db.restorePrevious);
     restoreCb:EnableMouse(true);
@@ -463,212 +454,6 @@ local function CreateOptionsFrame()
     restoreCb.OnValueChanged = function(self, value)
         db.restorePrevious = value;
     end;
-    y = y - 26;
-
-    -- Verbose checkbox
-    local verboseCb = CreateCheckbox(content, "Show chat notifications", 280);
-    verboseCb:SetPoint("TOPLEFT", 0, y);
-    verboseCb:SetValue(db.verbose);
-    verboseCb:EnableMouse(true);
-    verboseCb:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-        GameTooltip:SetText("Chat Notifications", 1, 1, 1);
-        GameTooltip:AddLine("Print a message to chat when switching or restoring reputation.", 1, 0.82, 0, true);
-        GameTooltip:Show();
-    end);
-    verboseCb:SetScript("OnLeave", function() GameTooltip:Hide(); end);
-    verboseCb.OnValueChanged = function(self, value)
-        db.verbose = value;
-    end;
-    y = y - 30;
-
-    --------------------------------
-    -- Status section
-    --------------------------------
-    local statusHeader = content:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
-    statusHeader:SetPoint("TOPLEFT", 0, y);
-    statusHeader:SetText("Status");
-    statusHeader:SetTextColor(1, 0.82, 0);
-    y = y - 20;
-
-    local watchingLabel = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    watchingLabel:SetPoint("TOPLEFT", 4, y);
-    watchingLabel:SetJustifyH("LEFT");
-    watchingLabel:SetWidth(280);
-    y = y - 16;
-
-    local savedLabel = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    savedLabel:SetPoint("TOPLEFT", 4, y);
-    savedLabel:SetJustifyH("LEFT");
-    savedLabel:SetWidth(280);
-    y = y - 16;
-
-    local instanceLabel = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    instanceLabel:SetPoint("TOPLEFT", 4, y);
-    instanceLabel:SetJustifyH("LEFT");
-    instanceLabel:SetWidth(280);
-    y = y - 24;
-
-    local function UpdateStatus()
-        -- Watching
-        local currentID = GetCurrentWatchedFactionID();
-        if currentID then
-            local name = GetFactionNameByID(currentID) or tostring(currentID);
-            watchingLabel:SetText("Watching: |cffffd200" .. name .. "|r");
-        else
-            watchingLabel:SetText("Watching: |cff888888none|r");
-        end
-
-        -- Saved previous
-        if db.previousFactionID then
-            local name = GetFactionNameByID(db.previousFactionID) or tostring(db.previousFactionID);
-            savedLabel:SetText("Saved previous: |cffffd200" .. name .. "|r");
-        else
-            savedLabel:SetText("Saved previous: |cff888888none|r");
-        end
-
-        -- Instance
-        local inInstance, instanceType = IsInInstance();
-        if inInstance then
-            local instanceName = GetInstanceInfo();
-            local targetID = GetFactionIDForInstance(instanceName);
-            if targetID then
-                local targetName = GetFactionNameByID(targetID) or tostring(targetID);
-                instanceLabel:SetText("Instance: |cffffd200" .. instanceName .. "|r");
-            else
-                instanceLabel:SetText("Instance: |cffffd200" .. instanceName .. "|r (unmapped)");
-            end
-        else
-            instanceLabel:SetText("Instance: |cff888888not in one|r");
-        end
-    end
-
-    --------------------------------
-    -- Action buttons
-    --------------------------------
-    local checkBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
-    checkBtn:SetSize(130, 22);
-    checkBtn:SetPoint("TOPLEFT", 0, y);
-    checkBtn:SetText("Check Zone Now");
-    checkBtn:SetScript("OnClick", function()
-        ProcessZoneChange();
-        UpdateStatus();
-    end);
-
-    local clearBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
-    clearBtn:SetSize(130, 22);
-    clearBtn:SetPoint("TOPLEFT", 140, y);
-    clearBtn:SetText("Clear Saved Rep");
-    clearBtn:SetScript("OnClick", function()
-        db.previousFactionID = nil;
-        PrintAlways("Cleared saved previous faction");
-        UpdateStatus();
-    end);
-    y = y - 34;
-
-    --------------------------------
-    -- Instance list section
-    --------------------------------
-    local listHeader = content:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
-    listHeader:SetPoint("TOPLEFT", 0, y);
-    listHeader:SetText("Mapped Instances");
-    listHeader:SetTextColor(1, 0.82, 0);
-    y = y - 4;
-
-    -- Scrollable instance list
-    local listFrame = CreateFrame("Frame", nil, content, "BackdropTemplate");
-    listFrame:SetPoint("TOPLEFT", 0, y);
-    listFrame:SetPoint("RIGHT", content, "RIGHT", 0, 0);
-    listFrame:SetHeight(130);
-    listFrame:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    });
-    listFrame:SetBackdropColor(0.05, 0.05, 0.05, 0.8);
-    listFrame:SetBackdropBorderColor(0.4, 0.4, 0.4);
-
-    local scrollFrame = CreateFrame("ScrollFrame", "RepSwitcherListScroll", listFrame, "FauxScrollFrameTemplate");
-    scrollFrame:SetPoint("TOPLEFT", 4, -4);
-    scrollFrame:SetPoint("BOTTOMRIGHT", -22, 4);
-
-    local ROW_HEIGHT = 14;
-    local VISIBLE_ROWS = 9;
-    local listRows = {};
-    local sortedInstances = {};
-
-    for i = 1, VISIBLE_ROWS do
-        local row = CreateFrame("Frame", nil, listFrame);
-        row:SetSize(1, ROW_HEIGHT);
-        row:SetPoint("TOPLEFT", scrollFrame, "TOPLEFT", 0, -(i - 1) * ROW_HEIGHT);
-        row:SetPoint("RIGHT", scrollFrame, "RIGHT", 0, 0);
-
-        row.instanceText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-        row.instanceText:SetPoint("LEFT", 2, 0);
-        row.instanceText:SetJustifyH("LEFT");
-        row.instanceText:SetWidth(150);
-
-        row.factionText = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-        row.factionText:SetPoint("LEFT", 158, 0);
-        row.factionText:SetJustifyH("LEFT");
-
-        listRows[i] = row;
-    end
-
-    local function BuildInstanceList()
-        table.wipe(sortedInstances);
-        for instanceName, entry in pairs(INSTANCE_FACTION_MAP) do
-            local factionID;
-            if entry.faction then
-                factionID = entry.faction;
-            elseif playerFaction == "Alliance" then
-                factionID = entry.alliance;
-            else
-                factionID = entry.horde;
-            end
-            local factionName = GetFactionNameByID(factionID) or tostring(factionID);
-            tinsert(sortedInstances, { instance = instanceName, faction = factionName });
-        end
-        table.sort(sortedInstances, function(a, b) return a.instance < b.instance; end);
-    end
-
-    local function UpdateList()
-        local offset = FauxScrollFrame_GetOffset(scrollFrame);
-        FauxScrollFrame_Update(scrollFrame, #sortedInstances, VISIBLE_ROWS, ROW_HEIGHT);
-        for i = 1, VISIBLE_ROWS do
-            local row = listRows[i];
-            local idx = offset + i;
-            if idx <= #sortedInstances then
-                local e = sortedInstances[idx];
-                row.instanceText:SetText(e.instance);
-                row.factionText:SetText("|cffaaaaaa" .. e.faction .. "|r");
-                row:Show();
-            else
-                row:Hide();
-            end
-        end
-    end
-
-    scrollFrame:SetScript("OnVerticalScroll", function(self, offset)
-        FauxScrollFrame_OnVerticalScroll(self, offset, ROW_HEIGHT, UpdateList);
-    end);
-
-    -- Update status and list on show
-    frame:SetScript("OnShow", function()
-        UpdateStatus();
-        BuildInstanceList();
-        UpdateList();
-    end);
-
-    -- Bottom close button
-    local closeButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate");
-    closeButton:SetSize(100, 22);
-    closeButton:SetPoint("BOTTOM", 0, 15);
-    closeButton:SetText("Close");
-    closeButton:SetScript("OnClick", function()
-        frame:Hide();
-    end);
 
     -- ESC to close
     tinsert(UISpecialFrames, "RepSwitcherOptionsFrame");
@@ -699,10 +484,23 @@ local function ShowHelp()
     PrintAlways("  |cffffd200/rs help|r - Show this help");
 end
 
+local INSTANCE_NAMES = {
+    [543] = "Hellfire Ramparts",    [542] = "The Blood Furnace",    [540] = "The Shattered Halls",
+    [547] = "The Slave Pens",       [546] = "The Underbog",         [545] = "The Steamvault",
+    [557] = "Mana-Tombs",           [558] = "Auchenai Crypts",      [556] = "Sethekk Halls",
+    [555] = "Shadow Labyrinth",     [554] = "The Mechanar",         [553] = "The Botanica",
+    [552] = "The Arcatraz",         [560] = "Old Hillsbrad",        [269] = "The Black Morass",
+    [585] = "Magister's Terrace",   [532] = "Karazhan",             [534] = "Hyjal Summit",
+    [564] = "Black Temple",         [329] = "Stratholme",           [289] = "Scholomance",
+    [230] = "Blackrock Depths",     [429] = "Dire Maul",            [409] = "Molten Core",
+    [509] = "Ruins of Ahn'Qiraj",  [531] = "Temple of Ahn'Qiraj",  [309] = "Zul'Gurub",
+    [533] = "Naxxramas",
+};
+
 local function ShowList()
     PrintAlways("Mapped instances:");
     local entries = {};
-    for instanceName, entry in pairs(INSTANCE_FACTION_MAP) do
+    for instanceID, entry in pairs(INSTANCE_FACTION_MAP) do
         local factionID;
         if entry.faction then
             factionID = entry.faction;
@@ -712,6 +510,7 @@ local function ShowList()
             factionID = entry.horde;
         end
         local factionName = GetFactionNameByID(factionID) or tostring(factionID);
+        local instanceName = INSTANCE_NAMES[instanceID] or tostring(instanceID);
         entries[#entries + 1] = { instance = instanceName, faction = factionName };
     end
     table.sort(entries, function(a, b) return a.instance < b.instance; end);
