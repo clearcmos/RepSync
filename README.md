@@ -38,38 +38,34 @@ Type `/rs` to open the options panel.
 ## Supported Instances
 
 ### TBC Dungeons
-| Instance | Faction |
-|---|---|
-| Hellfire Ramparts, Blood Furnace, Shattered Halls | Honor Hold / Thrallmar |
-| Slave Pens, Underbog, Steamvault | Cenarion Expedition |
-| Mana-Tombs | The Consortium |
-| Auchenai Crypts, Sethekk Halls, Shadow Labyrinth | Lower City |
-| Mechanar, Botanica, Arcatraz | The Sha'tar |
-| Old Hillsbrad Foothills, Black Morass | Keepers of Time |
-| Magister's Terrace | Shattered Sun Offensive |
+
+- **Hellfire Ramparts, Blood Furnace, Shattered Halls** - Honor Hold / Thrallmar
+- **Slave Pens, Underbog, Steamvault** - Cenarion Expedition
+- **Mana-Tombs** - The Consortium
+- **Auchenai Crypts, Sethekk Halls, Shadow Labyrinth** - Lower City
+- **Mechanar, Botanica, Arcatraz** - The Sha'tar
+- **Old Hillsbrad Foothills, Black Morass** - Keepers of Time
+- **Magister's Terrace** - Shattered Sun Offensive
 
 ### TBC Raids
-| Instance | Faction |
-|---|---|
-| Karazhan | The Violet Eye |
-| Hyjal Summit | Scale of the Sands |
-| Black Temple | Ashtongue Deathsworn |
+
+- **Karazhan** - The Violet Eye
+- **Hyjal Summit** - Scale of the Sands
+- **Black Temple** - Ashtongue Deathsworn
 
 ### Vanilla Dungeons
-| Instance | Faction |
-|---|---|
-| Stratholme, Scholomance | Argent Dawn |
-| Blackrock Depths | Thorium Brotherhood |
-| Dire Maul | Shen'dralar |
+
+- **Stratholme, Scholomance** - Argent Dawn
+- **Blackrock Depths** - Thorium Brotherhood
+- **Dire Maul** - Shen'dralar
 
 ### Vanilla Raids
-| Instance | Faction |
-|---|---|
-| Molten Core | Hydraxian Waterlords |
-| Ruins of Ahn'Qiraj | Cenarion Circle |
-| Temple of Ahn'Qiraj | Brood of Nozdormu |
-| Zul'Gurub | Zandalar Tribe |
-| Naxxramas | Argent Dawn |
+
+- **Molten Core** - Hydraxian Waterlords
+- **Ruins of Ahn'Qiraj** - Cenarion Circle
+- **Temple of Ahn'Qiraj** - Brood of Nozdormu
+- **Zul'Gurub** - Zandalar Tribe
+- **Naxxramas** - Argent Dawn
 
 ---
 
