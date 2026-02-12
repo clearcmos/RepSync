@@ -1,6 +1,6 @@
 # RepSync
 
-**RepSync** automatically switches your watched reputation bar when entering dungeons and raids associated with specific factions.
+**RepSync** automatically switches your reputation bar when entering dungeons and raids associated with specific factions.
 
 Built specifically for **TBC Classic Anniversary**.
 
