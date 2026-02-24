@@ -27,7 +27,6 @@ local pairs = pairs;
 local ipairs = ipairs;
 local strlower = string.lower;
 local strtrim = strtrim;
-local tinsert = table.insert;
 local floor = math.floor;
 local GetNumFactions = GetNumFactions;
 local GetFactionInfo = GetFactionInfo;
@@ -38,7 +37,6 @@ local GetInstanceInfo = GetInstanceInfo;
 local IsInInstance = IsInInstance;
 local UnitFactionGroup = UnitFactionGroup;
 local GetSubZoneText = GetSubZoneText;
-local GetFactionInfoByID = GetFactionInfoByID;
 local GetTime = GetTime;
 
 local ADDON_COLOR = "|cff8080ff";
@@ -96,6 +94,11 @@ local INSTANCE_FACTION_MAP = {
     [531]  = { faction = 910 },   -- Temple of Ahn'Qiraj → Brood of Nozdormu
     [309]  = { faction = 270 },   -- Zul'Gurub → Zandalar Tribe
     [533]  = { faction = 529 },   -- Naxxramas → Argent Dawn
+
+    -- Battlegrounds
+    [30]   = { alliance = 730, horde = 729 },  -- Alterac Valley → Stormpike Guard / Frostwolf Clan
+    [489]  = { alliance = 890, horde = 889 },  -- Warsong Gulch → Silverwing Sentinels / Warsong Outriders
+    [529]  = { alliance = 509, horde = 510 },  -- Arathi Basin → League of Arathor / The Defilers
 };
 
 --------------------------------------------------------------------------------
@@ -515,6 +518,9 @@ local FACTION_NAMES = {
     [369]  = "Gadgetzan",              [470]  = "Ratchet",
     [970]  = "Sporeggar",              [978]  = "Kurenai",
     [941]  = "The Mag'har",
+    [730]  = "Stormpike Guard",        [729]  = "Frostwolf Clan",
+    [890]  = "Silverwing Sentinels",   [889]  = "Warsong Outriders",
+    [509]  = "League of Arathor",      [510]  = "The Defilers",
     [72]   = "Stormwind",              [47]   = "Ironforge",
     [69]   = "Darnassus",              [930]  = "Exodar",
     [76]   = "Orgrimmar",              [81]   = "Thunder Bluff",
@@ -540,7 +546,7 @@ end
 -- re-collapses previously collapsed headers.
 --------------------------------------------------------------------------------
 
-local function FindAndWatchFactionByID(targetFactionID)
+local function FindAndWatchFactionByID(targetFactionID, skipExalted, blacklist)
     if not targetFactionID then return false; end
 
     -- Phase 1: Record and expand all collapsed headers
@@ -563,18 +569,34 @@ local function FindAndWatchFactionByID(targetFactionID)
 
     -- Phase 2: Find the target faction index
     local targetIndex = nil;
+    local factionName = nil;
     local numFactions = GetNumFactions();
     for i = 1, numFactions do
-        local _, _, _, _, _, _, _, _, _, _, _, _, _, factionID = GetFactionInfo(i);
+        local name, _, _, _, _, _, _, _, _, _, _, _, _, factionID = GetFactionInfo(i);
         if factionID == targetFactionID then
             targetIndex = i;
+            factionName = name;
             break;
         end
     end
 
-    -- Phase 3: Set watched faction
+    -- Phase 2.5: Check skip criteria (reliable after expand, unlike GetFactionInfoByID
+    -- which can return nil for factions in the Inactive reputation list)
+    local skipReason = nil;
+    if targetIndex and (skipExalted or blacklist) then
+        local _, _, standingID = GetFactionInfo(targetIndex);
+        if standingID and standingID <= 2 then
+            skipReason = "Hostile";
+        elseif skipExalted and standingID and standingID == 8 then
+            skipReason = "Exalted";
+        elseif blacklist and blacklist[targetFactionID] then
+            skipReason = "Ignored";
+        end
+    end
+
+    -- Phase 3: Set watched faction (only if not skipped)
     local success = false;
-    if targetIndex then
+    if targetIndex and not skipReason then
         SetWatchedFactionIndex(targetIndex);
         success = true;
     end
@@ -595,7 +617,7 @@ local function FindAndWatchFactionByID(targetFactionID)
         end
     end
 
-    return success;
+    return success, skipReason, factionName;
 end
 
 --------------------------------------------------------------------------------
@@ -610,7 +632,7 @@ local function ProcessZoneChange()
 
     -- Priority 1: Instance detection
     local inInstance, instanceType = IsInInstance();
-    if inInstance and (instanceType == "party" or instanceType == "raid") then
+    if inInstance and (instanceType == "party" or instanceType == "raid" or instanceType == "pvp") then
         local instanceName, _, _, _, _, _, _, instanceID = GetInstanceInfo();
         if instanceID then
             targetFactionID = GetFactionIDFromEntry(INSTANCE_FACTION_MAP[instanceID]);
@@ -652,25 +674,6 @@ local function ProcessZoneChange()
             return;
         end
 
-        -- Check if we should skip this faction
-        local _, _, standingID = GetFactionInfoByID(targetFactionID);
-        local skipReason = nil;
-        if standingID and standingID <= 2 then
-            skipReason = "Hostile";
-        elseif db.skipExalted and standingID and standingID == 8 then
-            skipReason = "Exalted";
-        elseif db.blacklist and db.blacklist[targetFactionID] then
-            skipReason = "Ignored";
-        end
-
-        if skipReason then
-            local factionName = GetFactionNameByID(targetFactionID) or tostring(targetFactionID);
-            Print("Skipping |cffffd200" .. factionName .. "|r (" .. skipReason .. ")");
-            lastProcessedTarget = targetFactionID;
-            lastProcessedTime = now;
-            return;
-        end
-
         local currentFactionID = GetCurrentWatchedFactionID();
         if currentFactionID == targetFactionID then
             lastProcessedTarget = targetFactionID;
@@ -678,13 +681,16 @@ local function ProcessZoneChange()
             return;
         end
 
-        -- Only save previous if we don't already have one (preserves original across transitions)
-        if db.restorePrevious and currentFactionID and not db.previousFactionID then
-            db.previousFactionID = currentFactionID;
-        end
-
-        if FindAndWatchFactionByID(targetFactionID) then
-            local factionName = GetFactionNameByID(targetFactionID) or tostring(targetFactionID);
+        local success, skipReason, foundName = FindAndWatchFactionByID(targetFactionID, db.skipExalted, db.blacklist);
+        if skipReason then
+            local factionName = foundName or FACTION_NAMES[targetFactionID] or tostring(targetFactionID);
+            Print("Skipping |cffffd200" .. factionName .. "|r (" .. skipReason .. ")");
+        elseif success then
+            -- Save previous only on successful switch (preserves original across transitions)
+            if db.restorePrevious and currentFactionID and not db.previousFactionID then
+                db.previousFactionID = currentFactionID;
+            end
+            local factionName = foundName or FACTION_NAMES[targetFactionID] or tostring(targetFactionID);
             if db.showAlert then
                 ShowAlert("RepSync: " .. factionName);
             else
@@ -813,6 +819,67 @@ RegisterSettings = function()
 
     AddCheckbox("verbose", "Chat Messages",
         "Print reputation switch messages to chat.");
+
+    -------------------------
+    -- Section: Ignored Factions
+    -------------------------
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Ignored Factions"));
+
+    local relevantFactions = {};
+    local seen = {};
+
+    for _, entry in pairs(INSTANCE_FACTION_MAP) do
+        local fid = GetFactionIDFromEntry(entry);
+        if fid and not seen[fid] then
+            seen[fid] = true;
+            relevantFactions[#relevantFactions + 1] = fid;
+        end
+    end
+
+    for _, entry in pairs(CITY_FACTION_MAP) do
+        local fid = GetFactionIDFromEntry(entry);
+        if fid and not seen[fid] then
+            seen[fid] = true;
+            relevantFactions[#relevantFactions + 1] = fid;
+        end
+    end
+
+    local FACTION_SPECIFIC_SUBZONES = {
+        [54]  = "Alliance",  -- Gnomeregan Exiles (Tinker Town)
+        [530] = "Horde",     -- Darkspear Trolls (Valley of Spirits)
+        [978] = "Alliance",  -- Kurenai (Telaar)
+        [941] = "Horde",     -- The Mag'har (Garadar)
+    };
+    for _, data in ipairs(SUBZONE_LOCALE_DATA) do
+        local fid = data.factionID;
+        local requiredFaction = FACTION_SPECIFIC_SUBZONES[fid];
+        if fid and not seen[fid] and (not requiredFaction or requiredFaction == playerFaction) then
+            seen[fid] = true;
+            relevantFactions[#relevantFactions + 1] = fid;
+        end
+    end
+
+    table.sort(relevantFactions, function(a, b)
+        return (FACTION_NAMES[a] or "") < (FACTION_NAMES[b] or "");
+    end);
+
+    for _, fid in ipairs(relevantFactions) do
+        local fname = FACTION_NAMES[fid] or tostring(fid);
+        local setting = Settings.RegisterProxySetting(category,
+            "REPSYNC_IGNORE_" .. fid, Settings.VarType.Boolean, fname,
+            false,
+            function() return db.blacklist and db.blacklist[fid] or false; end,
+            function(value)
+                if not db.blacklist then db.blacklist = {}; end
+                if value then
+                    db.blacklist[fid] = true;
+                else
+                    db.blacklist[fid] = nil;
+                end
+            end);
+        Settings.CreateCheckbox(category, setting,
+            "Ignore " .. fname .. " -- RepSync will not switch to this faction.");
+    end
 
     Settings.RegisterAddOnCategory(category);
     repSyncCategoryID = category:GetID();
@@ -944,6 +1011,8 @@ local INSTANCE_NAMES = {
     [230] = "Blackrock Depths",     [429] = "Dire Maul",            [409] = "Molten Core",
     [509] = "Ruins of Ahn'Qiraj",  [531] = "Temple of Ahn'Qiraj",  [309] = "Zul'Gurub",
     [533] = "Naxxramas",
+    [30]  = "Alterac Valley",        [489] = "Warsong Gulch",
+    [529] = "Arathi Basin",
 };
 
 local CITY_NAMES = {

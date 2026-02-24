@@ -8,14 +8,14 @@ Built specifically for **TBC Classic Anniversary**.
 
 ## Features
 
-- **Auto-switch** - Switches your reputation bar to the correct faction when entering a mapped location
+- **Auto-switch** - Switches your reputation bar to the correct faction when entering a mapped dungeon, raid, battleground, city, or sub-zone
 - **Auto-restore** - Switches back to your previous reputation when you leave
-- **Faction-aware** - Handles Alliance/Horde split reps (Honor Hold vs Thrallmar, Kurenai vs Mag'har)
+- **Faction-aware** - Handles Alliance/Horde split reps (Honor Hold vs Thrallmar, Stormpike Guard vs Frostwolf Clan, etc.)
 - **City support** - Switches to city faction rep when entering capital cities
 - **Sub-zone support** - Detects faction sub-zones like Aldor Rise, Scryer's Tier, and goblin towns
 - **Multi-language** - Sub-zone detection works in all 10 WoW client languages
 - **Skip exalted** - Optionally skip factions you're already Exalted with
-- **Ignore list** - Exclude specific factions from auto-switching
+- **Ignore list** - Exclude specific factions via checkboxes in the options panel or slash commands
 - **Screen alerts** - Zone-text style notification with draggable positioning
 - **Native options** - Settings integrated in Options > AddOns > RepSync
 
@@ -43,6 +43,7 @@ Type `/rs` to open the options panel, or go to **Options > AddOns > RepSync**.
 - Restore previous rep on exit
 - Enable/Disable city & sub-zone switching
 - Skip exalted factions
+- Ignored factions checklist (per-faction toggles)
 - Show/hide screen alerts (draggable position)
 - Chat messages toggle
 
@@ -79,6 +80,12 @@ Type `/rs` to open the options panel, or go to **Options > AddOns > RepSync**.
 - **Everlook** - Everlook
 - **Gadgetzan** - Gadgetzan
 - **Ratchet** - Ratchet
+
+### Battlegrounds
+
+- **Alterac Valley** - Stormpike Guard / Frostwolf Clan
+- **Warsong Gulch** - Silverwing Sentinels / Warsong Outriders
+- **Arathi Basin** - League of Arathor / The Defilers
 
 ### TBC Dungeons
 

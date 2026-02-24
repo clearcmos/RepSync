@@ -5,23 +5,24 @@
 **RepSync** is a WoW Classic Anniversary addon that automatically switches the player's watched reputation bar when entering dungeons, raids, capital cities, and faction sub-zones.
 
 ### Key Files
-- `RepSync.lua` - Main addon code (all logic in single file, ~1030 lines)
+- `RepSync.lua` - Main addon code (all logic in single file, ~1100 lines)
 - `RepSync.toc` - Addon manifest
 - `README.md` - Documentation (also used for CurseForge description)
 - Deployed to: `/mnt/data/games/World of Warcraft/_anniversary_/Interface/AddOns/RepSync/`
 
 ### Features
-- Auto-detects instance entry via `GetInstanceInfo()`
+- Auto-detects instance entry via `GetInstanceInfo()` (dungeons, raids, and battlegrounds)
 - Auto-detects capital cities via `C_Map.GetBestMapForUnit("player")` (numeric uiMapIDs, locale-independent)
 - Auto-detects faction sub-zones via `GetSubZoneText()` with full localization (10 WoW client languages)
-- Maps instances, cities, and sub-zones to their associated reputation faction
-- Handles faction-specific reps (Honor Hold vs Thrallmar, Kurenai vs Mag'har) via `UnitFactionGroup()`
+- Maps instances, cities, sub-zones, and battlegrounds to their associated reputation faction
+- Handles faction-specific reps (Honor Hold vs Thrallmar, Kurenai vs Mag'har, Stormpike Guard vs Frostwolf Clan) via `UnitFactionGroup()`
 - Saves and restores previously watched reputation on exit (preserves original across multi-zone transitions)
 - Expand/collapse-safe faction index lookup (expands headers, finds faction, re-collapses)
+- Skip checks (Hostile, Exalted, Ignored) run inside expanded scan for reliability
 - Debounce logic to avoid redundant switches
 - Native Blizzard Settings API options panel (Options > AddOns > RepSync)
 - Skip exalted factions toggle
-- Faction ignore list (blacklist)
+- Faction ignore list with GUI checkboxes in options panel (also manageable via slash commands)
 - Zone-text style screen alerts with draggable positioning
 - Chat message toggle
 - SavedVariables: `RepSyncDB` (per-character)
@@ -32,7 +33,7 @@
 - Priority system: instances > sub-zones > cities
 - `FindAndWatchFactionByID()` handles the expand-all → find → set → re-collapse dance
 - `GetFactionIDFromEntry()` resolves faction-split entries based on player faction
-- `INSTANCE_FACTION_MAP` flat table keyed by instanceID (8th return of `GetInstanceInfo()`)
+- `INSTANCE_FACTION_MAP` flat table keyed by instanceID (8th return of `GetInstanceInfo()`) — includes dungeons, raids, and battlegrounds
 - `CITY_FACTION_MAP` flat table keyed by uiMapID (Classic Anniversary IDs: 1453-1458, 1947, 1954)
 - `SUBZONE_FACTION_MAP` built at load time from `SUBZONE_LOCALE_DATA` (all locale names → factionID)
 - `C_Reputation.GetWatchedFactionData()` to check current watched faction

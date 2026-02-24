@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.3] - 2026-02-24
+
+### Added
+- Battleground reputation switching: Alterac Valley, Warsong Gulch, Arathi Basin (faction-aware)
+- Ignored Factions section in options panel with per-faction checkboxes
+
+### Changed
+- Skip checks (Hostile, Exalted, Ignored) now run inside the expanded faction scan for reliability
+
+### Removed
+- Unused localized variables (`tinsert`, `GetFactionInfoByID`)
+
 ## [1.0.2] - 2026-02-21
 
 ### Changed

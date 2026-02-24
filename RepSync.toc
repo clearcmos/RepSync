@@ -2,7 +2,7 @@
 ## Title: RepSync
 ## Notes: Automatically switches watched reputation in dungeons, raids, and cities
 ## Author: clearcmos
-## Version: 1.0.2
+## Version: 1.0.3
 ## SavedVariablesPerCharacter: RepSyncDB
 
 RepSync.lua
